@@ -1,7 +1,7 @@
 // IStockAdapter.js
 class IStockAdapter {
-    async fetchHistoricalData(symbol, start, end) {
-      throw new Error("שיטה זו לא יושמה");
+    async fetch(symbol, start, end) {
+      throw new Error("problem in fetchHistoricalData function");
     }
   }
   

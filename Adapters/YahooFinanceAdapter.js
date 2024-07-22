@@ -11,13 +11,13 @@ class YahooFinanceAdapter extends IStockAdapter {
       return quote;
     } catch (error) {
       if (error.code === 404) {
-        console.error(`לא נמצאו נתוני היסטוריה עבור ${symbol} בין התאריכים: ${start}, ${end}`);
+        console.error(`not found ${symbol} between dates  ${start}, ${end}`);
       } else if (error.code === 502) {
-        console.error(`שגיאת תקשורת עבור ${symbol}, מנסה שוב בעוד זמן מה...`);
+        console.error(`Communication error${symbol},Try again in 5 seconds...`);
         await this.delay(5000); // המתנה של 5 שניות לפני נסיון נוסף
         return await this.fetchHistoricalData(symbol, start, end);
       } else {
-        console.error(`שגיאה בהבאת נתונים עבור ${symbol}:`, error);
+        console.error(`Error fetching the data for ${symbol}:`, error);
       }
       return null;
     }

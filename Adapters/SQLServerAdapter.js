@@ -11,11 +11,10 @@ class SQLServerAdapter extends DatabaseAdapter {
 
     async connect() {
         try {
-            console.log('Attempting to connect to the database...');
             this.conn = await new Promise((resolve, reject) => {
                 sql.open(this.connectionString, (err, conn) => {
                     if (err) {
-                        reject(new Error('Error connecting to the database: ' + err.message));
+                        reject(new Error('Error connecting to open the database: ' + err.message));
                         return;
                     }
                     resolve(conn);
@@ -56,7 +55,6 @@ class SQLServerAdapter extends DatabaseAdapter {
 
 const createSQLServerAdapterSingleton = (function () {
     let instance;
-
     return function (connectionString) {
         if (!instance) {
             instance = new SQLServerAdapter(connectionString);

@@ -3,7 +3,6 @@ const path = require("path");
 
 const folderPath = path.join(__dirname, "Stocks");
 let stockNames = [];
-
 async function loadStockNamesFromFiles() {
   return new Promise((resolve, reject) => {
     fs.readdir(folderPath, (err, files) => {

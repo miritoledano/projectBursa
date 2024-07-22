@@ -1,8 +1,8 @@
 const express =require( "express");
-const {getStocks}=require('../API/getStocks');
+const {getAllStocks }=require('../API/getStocks');
 const router = express.Router();
-router.get("/", getStocks);
-module.exports={router};
+router.get("/", getAllStocks );
+module.exports = router;
 
 
 

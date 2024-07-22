@@ -1,9 +1,6 @@
-// main.js
-
 const fs = require('fs');
 const { getYesterdayDate, getCurrentDate, divideArrToChunks, importHistoricalStockData, writeToCsv } = require('./yahoo-historical.js');
 const { getStockNames } = require('./readStocks.js');
-
 
 function pathExists(path) {
     try {
@@ -49,7 +46,6 @@ async function currentStock(item) {
     try {
         console.log(`Fetching data for ${item}`);
         const quotes = await importHistoricalStockData(item, getYesterdayDate(), getCurrentDate());
-        console.log('Fetched quotes:', quotes);
 
         if (!quotes) {
             console.error(`No quotes returned for ${item}`);
@@ -63,13 +59,23 @@ async function currentStock(item) {
     }
 }
 
+async function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function update() {
     try {
-        // const names=['zyxi','zyme','zws','zvsa','zvra','zvia','zura','zuo'];
-         const stockNames = await getStockNames();
+        const stockNames = await getStockNames();
         const chunks = divideArrToChunks(stockNames);
         const allQuotes = [];
+        const specificLetters = new Set(['C', 'K', 'O', 'S', 'W']);
+
         for (const chunk of chunks) {
+            if (chunk.some(symbol => specificLetters.has(symbol[0].toUpperCase()))) {
+                console.log(`Taking a break for 2 minutes for stocks starting with one of ${[...specificLetters].join(', ')}...`);
+                await delay(2 * 60 * 1000); // 7 minutes delay
+            }
+
             for (const item of chunk) {
                 try {
                     const quotes = await currentStock(item);
@@ -78,9 +84,8 @@ async function update() {
                         continue;
                     }
                     allQuotes.push(...quotes);
-                  
-                    let data = readFromCsv(`C:/ProjectBursa/BLL/Stocks/${item}.csv`);
 
+                    let data = readFromCsv(`C:/ProjectBursa/BLL/Stocks/${item}.csv`);
                     let csvData = parseCsvDataToJson(data);
 
                     if (!csvData) {
@@ -89,9 +94,8 @@ async function update() {
                     }
 
                     csvData = [...csvData, ...quotes];
-                  
                     writeToCsv(item, csvData);
-                    await delay(1000); // Delay between API calls
+
                 } catch (error) {
                     console.error(`Error processing ${item}:`, error);
                 }
@@ -104,12 +108,4 @@ async function update() {
     }
 }
 
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-
-
-
-
-module.exports = { readFromCsv, currentStock,update };
+module.exports = { readFromCsv, currentStock, update };

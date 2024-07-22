@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const connectionString = process.env.CONNECTION_STRING;
 
-let adapter; // Declare adapter variable outside of function scope
+let adapter; 
 
 const connectToDB = async () => {
     adapter = new SQLServerAdapter(connectionString);

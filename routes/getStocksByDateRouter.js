@@ -3,4 +3,4 @@ const router = express.Router();
 const {getStocksByDate}=require('../API/getStocksByDate');
 router.get("/:date", getStocksByDate);
 
-module.exports={router};
+module.exports = router;

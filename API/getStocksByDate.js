@@ -1,21 +1,24 @@
 const { getDBAdapter } = require('../DAL/connectDB');
-
-async function getStocksByDate(req, res) {
+async function getStocksByDate(req, res,next) {
     const adapter = getDBAdapter();
     const { date } = req.params;
-    
     const query = 'SELECT * FROM STOCKPRICES WHERE date = ?';
     try {
-        console.log("tbh kmjn")
         const rows = await adapter.query(query, [date]); // שים לב לשימוש במערך כאן
-        console.log('נתוני המניות הם:', rows);
+        console.log('The stock figures are:', rows);
+        
         if (rows.length === 0) {
-            console.log(`אין נתונים לתאריך ${date}`);
+            return res.status(404).json({
+                type: 'error',
+                message: `No data found for the date ${date}`
+            });
         }
-        return rows; // ניתן להחזיר את השורות אם יש צורך בעיבוד נוסף
+        return res.json(rows); // ניתן להחזיר את השורות אם יש צורך בעיבוד נוסף
     } catch (err) {
-        console.error('שגיאה בקריאת נתוני המניות:', err.message);
-        throw err; // זרוק מחדש את השגיאה כדי לטפל בה במקום אחר במידת הצורך
+
+        const error = new Error("Error reading stock data:");
+        error.status = 500;
+        next(error);  
     }
 }
 
