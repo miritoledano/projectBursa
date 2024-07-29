@@ -253,8 +253,9 @@
 // // }
 const SQLServerAdapter = require('../Adapters/SQLServerAdapter');
 const { loadStockNamesFromFiles } = require('../BLL/readStocks');
-const { read_from_csv } = require('../BLL/update');
+const { readFromCsv } = require('../BLL/update');
 const dotenv = require('dotenv');
+
 dotenv.config({ path: 'C:\\ProjectBursa\\.env' });
 
 async function createTables(adapter) {
@@ -264,32 +265,35 @@ async function createTables(adapter) {
 
 async function insertStocks(adapter, names) {
     for (const symbol of names) {
-        await adapter.query('EXEC InsertIntoStocks @symbol', [symbol]);
+        await adapter.query('EXEC InsertIntoStocks @symbol = ?', [symbol]);
     }
 }
 
 async function insertStockPrices(adapter, names) {
     for (const symbol of names) {
-        const csvPath = `Stocks/${symbol}.csv`;
-        const csvData = read_from_csv(csvPath);
+        const csvPath = `../bll/Stocks/${symbol}.csv`;
+        const csvData = readFromCsv(csvPath);
 
         if (csvData) {
             const rows = csvData.split('\n').slice(1); // Assuming the first row is the header
 
             for (const row of rows) {
-                const [date, open, high, low, close, volume] = row.split(',');
-                const dateObj = new Date(date);
+                const [dateStr, open, high, low, close, volume] = row.split(',');
 
+                // Parse the date string
+                const dateObj = new Date(dateStr);
                 if (isNaN(dateObj.getTime())) {
-                    console.error(`Invalid date format in CSV for ${symbol}: ${date}`);
-                    continue;
+                    console.error(`Invalid date format in CSV for ${symbol}: ${dateStr}`);
+                    continue; // Skip this row
                 }
 
+                // Format the date for SQL Server
                 const formattedDate = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
 
+                // Insert into database
                 await adapter.query(
-                    'EXEC InsertIntoStockPrices @symbol, @date, @open, @high, @low, @close, @volume',
-                    [symbol, formattedDate, open, high, low, close, volume]
+                    'EXEC InsertIntoStockPrices @symbol = ?, @date = ?, @open = ?, @high = ?, @low = ?, @close = ?, @volume = ?',
+                    [symbol, formattedDate, parseFloat(open), parseFloat(high), parseFloat(low), parseFloat(close), parseInt(volume, 10)]
                 );
             }
         }

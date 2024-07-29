@@ -2,11 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const { connectToDB } = require('./DAL/connectDB');
 // const { DailyUpdate } = require('./DAL/updateDB');
+const {update}=require('./BLL/update');
 const getAllStocksRouter = require('./routes/getAllStocks '); // הוספת ראוטר למנהל קצבים 
 const getRangeOfDatesRouter = require('./routes/getRangeOfDatesRouter');
 const getByNameRouter = require('./routes/getByName');
 const getStocksByDateRouter = require('./routes/getStocksByDateRouter');
 const {errorHandling}=require('./middlweres/errorHandling');
+const schedule = require('node-schedule');
 const app = express();
 
 app.use(cors());
@@ -20,7 +22,11 @@ connectToDB()
         console.error('Failed to connect to the database:', err.message);
         process.exit(1); // Exit the process if unable to connect to the database
     });
-
+    function DailyUpdate() { 
+        schedule.scheduleJob('57 16 * * *', update);
+    }
+    DailyUpdate();
+    update()
 // Use routers
 app.use('/api/getAllStocks', getAllStocksRouter);
 app.use('/api/getRangeOfDates', getRangeOfDatesRouter);

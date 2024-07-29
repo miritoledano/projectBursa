@@ -1,7 +1,10 @@
 const fs = require('fs');
 const { getYesterdayDate, getCurrentDate, divideArrToChunks, importHistoricalStockData, writeToCsv } = require('./yahoo-historical.js');
 const { getStockNames } = require('./readStocks.js');
+const { updateDB } = require('../DAL/updateDB.js');
+const { writeToCsv } = require('./yahoo-historical.js');
 
+// Check if a given path exists
 function pathExists(path) {
     try {
         fs.accessSync(path);
@@ -11,6 +14,7 @@ function pathExists(path) {
     }
 }
 
+// Read data from a CSV file
 function readFromCsv(path) {
     if (!pathExists(path)) {
         console.error(`Error reading file, no such file or directory ${path}`);
@@ -24,6 +28,7 @@ function readFromCsv(path) {
     }
 }
 
+// Parse CSV data into JSON format
 function parseCsvDataToJson(csvData) {
     if (!csvData) return null;
     const lines = csvData.split('\n');
@@ -42,6 +47,7 @@ function parseCsvDataToJson(csvData) {
     return dataArray;
 }
 
+// Fetch current stock data for a given item
 async function currentStock(item) {
     try {
         console.log(`Fetching data for ${item}`);
@@ -53,30 +59,36 @@ async function currentStock(item) {
         }
 
         return quotes.map(quote => ({ ...quote, Symbol: item }));
+
     } catch (error) {
         console.error(`Error fetching data for ${item}:`, error);
         return null;
     }
 }
 
+// Delay execution for a given number of milliseconds
 async function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+const allQuotes = [];
+
+// Main update function to fetch and process stock data
 async function update() {
     try {
-        const stockNames = await getStockNames();
+         const stockNames = await getStockNames();
+        // const stockNames=['A','AA','AACG'];
         const chunks = divideArrToChunks(stockNames);
-        const allQuotes = [];
         const specificLetters = new Set(['C', 'K', 'O', 'S', 'W']);
 
         for (const chunk of chunks) {
             if (chunk.some(symbol => specificLetters.has(symbol[0].toUpperCase()))) {
-                console.log(`Taking a break for 2 minutes for stocks starting with one of ${[...specificLetters].join(', ')}...`);
+                console.log("Taking  break" );
                 await delay(2 * 60 * 1000); // 7 minutes delay
             }
 
             for (const item of chunk) {
+             
                 try {
                     const quotes = await currentStock(item);
                     if (!quotes) {
@@ -101,11 +113,19 @@ async function update() {
                 }
             }
         }
-        return allQuotes;
     } catch (error) {
         console.error('Error updating stocks:', error);
-        return [];
+    }
+
+    // Update the database with all collected quotes
+    try {
+        await updateDB(allQuotes);
+    } catch (error) {
+        console.error('Error updating database:', error);
     }
 }
 
+// Export functions for external use
 module.exports = { readFromCsv, currentStock, update };
+
+

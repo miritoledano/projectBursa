@@ -35,8 +35,8 @@ async function fetchDataForDates(start, end) {
   for (const chunk of chunks) {
     // Check for the first letter to decide if we need to take a break
     if (chunk.some(symbol => symbol[0].toUpperCase() === 'K')) {
-      console.log("Taking a break for 7 minutes at letter 'K'...");
-      await delay(4 * 60 * 1000); // 7 minutes delay
+      console.log("Taking a break for 2 minutes at letter 'K'...");
+      await delay(2 * 60 * 1000); // 7 minutes delay
     }
 
     await processChunk(chunk, start, end);
