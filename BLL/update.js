@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { getYesterdayDate, getCurrentDate, divideArrToChunks, importHistoricalStockData, writeToCsv } = require('./yahoo-historical.js');
-// const { getStockNames } = require('./readStocks.js');
+ const { getStockNames } = require('./readStocks.js');
 const { updateDB } = require('../DAL/updateDB.js');
 
 
@@ -76,8 +76,8 @@ const allQuotes = [];
 // Main update function to fetch and process stock data
 async function update() {
     try {
-        //  const stockNames = await getStockNames();
-        const stockNames=['AAGR'];
+          const stockNames = await getStockNames();
+        // const stockNames=['AAGR'];
         const chunks = divideArrToChunks(stockNames);
         const specificLetters = new Set(['C', 'K', 'O', 'S', 'W']);
 
